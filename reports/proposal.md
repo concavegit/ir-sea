@@ -27,7 +27,7 @@ We shall build networking levels between these 2 extremes as stretch goals if ti
  - Make basic client to send character to server: Kawin 
  - Research IRC Channel protocol: Siddharth
 
-### Done if
+### MVP:
 An IRC server capable of managing multiple connections and exchanging text messages. 
 
 ## Low level: Error checking of data transmitted through a noisy channel
@@ -46,7 +46,7 @@ An IRC server capable of managing multiple connections and exchanging text messa
  - Set up raspberry Pis for LED information transmission: Sreekanth
  - Process phototransistor input with C: Kawin
 
-### Done if
+### MVP:
 An application capable of conducting data transfer via phototransistor input with error checking.
 
 

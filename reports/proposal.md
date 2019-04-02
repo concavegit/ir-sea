@@ -1,4 +1,6 @@
-# (Sreekanth Sajjala, Siddharth Garimella, Kawin Nikomborirak) IRSea: Networking in C
+# IRSea: Networking in C
+
+Sreekanth Sajjala, Siddharth Garimella, Kawin Nikomborirak
 
 ### Goals
 

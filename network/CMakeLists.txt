@@ -1,1 +1,2 @@
-add_executable(irc irc.c)
+add_executable(server server.c)
+add_executable(client client.c)

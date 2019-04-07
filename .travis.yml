@@ -1,0 +1,29 @@
+dist: xenial
+sudo: required
+language: cpp
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-8
+      - g++-8
+
+env:
+  - "CC=gcc-8 && CXX=gcc-8"
+
+before_script:
+  - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
+  - mkdir build
+  - cd build
+  - cmake ..
+
+stages:
+  - build
+
+jobs:
+  include:
+    - stage: build
+      script: make

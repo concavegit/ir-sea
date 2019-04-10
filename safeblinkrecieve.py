@@ -32,3 +32,8 @@ def receive(blinks=40,duration=1,pin=23):
         print("|{}".format("==" if read_pin(pin) else ""))
         delay(duration)
     print(s)
+
+
+if __name__ == "__main__":
+    with Safeguards():
+       receive()

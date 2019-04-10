@@ -42,3 +42,27 @@ letter_dict = {"a": dot + dash,
                 "9": dash + dash + dash + dash + dot,
                 "0": dash + dash + dash + dash + dash,
                 " ": wor_brk}
+
+def letter_to_morse(letter):
+
+    return letter_dict[letter] + let_brk
+
+def sequence_to_morse(sequence):
+    sequence_in_morse = []
+    for letter in sequence:
+        sequence_in_morse += letter_to_morse(letter)
+    return sequence_in_morse[:-2]
+s=sequence_to_morse("why why why pi pi pi pip ip ip i pi p i pi pi p ip ip ipipi pi pi pi pi pi pi pi pi pip ip ip ip ip ip i pi pi pi pi pi pi i   jhj hj hj hj hj jhjhcjch ")
+
+if __name__ == '__main__':
+    pass
+    #print sequence_to_morse("hello there")
+
+
+class Safeguards:
+    def __enter__(self):
+        return self
+    def __exit__(self,*rabc):
+        GPIO.cleanup()
+        print("Safe exit succeeded")
+        return not any(rabc)

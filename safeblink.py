@@ -96,3 +96,24 @@ def space_letter(duration):
     delay(duration*3)
 def space_word(duration):
     delay(duration*7)
+def blink(duration=0.05,pin=17):
+    prepare_pin(pin)
+
+
+    for i in range(len(s)):
+        d=s[i]
+        if d==1:
+            turn_high(pin)
+            delay(duration)
+        elif d==0:
+            turn_low(pin)
+            delay(duration)
+
+
+
+
+
+
+if __name__ == "__main__":
+    with Safeguards():
+        blink()

@@ -66,3 +66,33 @@ class Safeguards:
         GPIO.cleanup()
         print("Safe exit succeeded")
         return not any(rabc)
+
+def prepare_pin(pin=17):
+    GPIO.setmode(GPIO.BCM)  #use Broadcom (BCM) GPIO numbers on breakout pcb
+
+    GPIO.setup(pin,GPIO.OUT) # allow pi to set 3.3v and 0v levels
+
+def turn_high(pin):
+    GPIO.output(pin,GPIO.HIGH)  # set 3.3V level on GPIO output
+
+def turn_low(pin):
+    GPIO.output(pin,GPIO.LOW)   # set ground (0) level on GPIO output
+
+def delay(duration):            # sleep for duration seconds where duration is a float.
+    time.sleep(duration)
+
+
+def dot(duration,pin):
+    turn_high(pin)
+    delay(duration)
+    turn_low(pin)
+    delay(duration)
+def dash(duration,pin):
+    turn_high(pin)
+    delay(duration*3)
+    turn_low(pin)
+    delay(duration)
+def space_letter(duration):
+    delay(duration*3)
+def space_word(duration):
+    delay(duration*7)

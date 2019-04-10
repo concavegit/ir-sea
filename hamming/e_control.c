@@ -25,24 +25,25 @@ int * corrected_nybble(int* nybble) {
     return c;
 }
 
-int * correct_codeword(int* codeword) {
-    int * p = malloc(10*sizeof(int));
-    memcpy(p, codeword, 10*sizeof(int));
+void correct_codeword(int* codeword) {
+    //int * p = malloc(7*sizeof(int));
+    //memcpy(p, codeword, 7*sizeof(int));
     int c1 = codeword[6]^codeword[4]^codeword[2]^codeword[0];
     int c2 = codeword[5]^codeword[4]^codeword[1]^codeword[0];
     int c3 = codeword[3]^codeword[2]^codeword[1]^codeword[0];
     int c = c3*4 + c2*2 + c1;
+    //printf("%d",c);
     if (c==0) {
-	puts("NO ERROR DETECTED.");
-	return p;
+	puts("\nNO ERROR DETECTED.");
     }
-    else if (p[7-c]==0) {
-    	p[7-c]=1;
-    } else {
-    	p[7-c]=0;
+    else {
+	if (codeword[7-c]==0) {
+    	    codeword[7-c]=1;
+    	} else {
+    	    codeword[7-c]=0;
+    	}
+    	puts("\nERROR CORRECTED");
     }
-    puts("ERROR CORRECTED");
-    return p;
 }
 
 int main(int argc, char** argv) {
@@ -55,14 +56,16 @@ int main(int argc, char** argv) {
         int n = 8;
         int data[n];
 	
-	printf(" ");
+	printf("\n");
+
         char token = xr;
         for( int i = 7; i >= 0; i-- )
         {
-            printf( "%d", ( token >> i ) & 1 ? 1 : 0 );
+            //printf( "%d", ( token >> i ) & 1 ? 1 : 0 );
             data[7-i] = (token >> i) & 1 ? 1 : 0;
         }
-        printf("\n");
+	
+	//printf(": ");
 
         int nybble1[4];
         int nybble2[4];
@@ -90,8 +93,10 @@ int main(int argc, char** argv) {
 	{
 	    printf("%d", codenybble2[i]);
 	}
-
+	
+	//correct_codeword(codenybble1);
+	//correct_codeword(codenybble2);
 
     }
-
+    printf("\n");
 }

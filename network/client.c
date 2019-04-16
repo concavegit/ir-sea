@@ -5,7 +5,9 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #define PORT 8080
+
 int main() {
   struct sockaddr_in_address;
   int sock = 0, valread;
@@ -13,11 +15,11 @@ int main() {
   char *hello = "Hello from client";
   char buffer[1024] = {0};
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("\n Socketcreation error \n");
+    printf("\n Socket creation error \n");
     return -1;
   }
 
-  memset(&serv_addr, '0', sizeof(serv_addr));
+  memset(&serv_addr, '0', sizeof serv_addr);
 
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(PORT);
@@ -27,7 +29,7 @@ int main() {
     return -1;
   }
 
-  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof serv_addr) < 0) {
     printf("\nConnection Failed\n");
     return -1;
   }

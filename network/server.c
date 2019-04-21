@@ -1,53 +1,312 @@
-#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
-#define PORT 8080
+#include "server.h"
+
+pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t topic_mutex = PTHREAD_MUTEX_INITIALIZER;
+int uid = 0;
+int cli_count = 0;
+char topic[BUFFER_SZ];
+
+void queue_add(Client *client) {
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i)
+    if (!clients[i]) {
+      clients[i] = client;
+      break;
+    }
+
+  pthread_mutex_unlock(&clients_mutex);
+}
+
+void queue_delete(unsigned int uid) {
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i)
+    if (clients[i]) {
+      if (clients[i]->uid == uid) {
+        clients[i] = NULL;
+        break;
+      }
+    }
+
+  pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_message(char *s, unsigned int uid) {
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i)
+    if (clients[i])
+      if (clients[i]->uid != uid)
+        if (write(clients[i]->connfd, s, strlen(s)) < 0) {
+          perror("Failed to send message");
+          break;
+        }
+
+  pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_message_all(char *s) {
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i)
+    if (clients[i])
+      if (write(clients[i]->connfd, s, strlen(s)) < 0) {
+        perror("Failed to send message");
+        break;
+      }
+
+  pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_message_self(char *s, int connfd) {
+  if (write(connfd, s, strlen(s)) < 0) {
+    perror("Failed to send message");
+    exit(-1);
+  }
+}
+
+void send_message_client(char *s, unsigned int uid) {
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i)
+    if (clients[i])
+      if (clients[i]->uid == uid)
+        if (write(clients[i]->connfd, s, strlen(s)) < 0) {
+          perror("Failed to send message");
+          break;
+        }
+
+  pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_active_clients(int connfd) {
+  char s[64];
+
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i)
+    if (clients[i]) {
+      sprintf(s, "<< [%d] %s\n", clients[i]->uid, clients[i]->name);
+      send_message_self(s, connfd);
+    }
+
+  pthread_mutex_unlock(&clients_mutex);
+}
+
+void strip_newline(char *s) {
+  while (*s != 0) {
+    if (*s == '\n')
+      *s = 0;
+
+    ++s;
+  }
+}
+
+void print_client_addr(struct sockaddr_in *addr) {
+  char ip4[INET_ADDRSTRLEN];
+  inet_ntop(AF_INET, &(addr->sin_addr), ip4, INET_ADDRSTRLEN);
+  printf("%s", ip4);
+}
+
+void *handle_client(void *arg) {
+  char buff_out[BUFFER_SZ];
+  char buff_in[BUFFER_SZ / 2];
+  int read_len;
+
+  cli_count++;
+  Client *cli = (Client *)arg;
+
+  printf("<< accept ");
+  print_client_addr(cli->addr);
+  printf(" referenced by %d\n", cli->uid);
+
+  sprintf(buff_out, "<< %s has joined\n", cli->name);
+  send_message_all(buff_out);
+
+  pthread_mutex_lock(&topic_mutex);
+  if (strlen(topic)) {
+    sprintf(buff_out, "<< topic: %s\n", topic);
+    send_message_self(buff_out, cli->connfd);
+  }
+
+  pthread_mutex_unlock(&topic_mutex);
+
+  send_message_self("<< see /help for assistance\n", cli->connfd);
+
+  /* Receive input from client */
+  while ((read_len = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
+    buff_in[read_len] = 0;
+    buff_out[0] = 0;
+    strip_newline(buff_in);
+
+    // Do not handle empty buffers
+    if (!strlen(buff_in))
+      continue;
+
+    // Handle special commands
+    if (buff_in[0] == '/') {
+      char *command, *param;
+      command = strtok(buff_in, " ");
+      if (!strcmp(command, "/quit"))
+        break;
+
+      else if (!strcmp(command, "/ping"))
+        send_message_self("<< pong\n", cli->connfd);
+
+      else if (!strcmp(command, "/topic")) {
+        param = strtok(NULL, " ");
+        if (param) {
+          pthread_mutex_lock(&topic_mutex);
+          topic[0] = 0;
+          while (param != NULL) {
+            strcat(topic, param);
+            strcat(topic, " ");
+            param = strtok(NULL, " ");
+          }
+          pthread_mutex_unlock(&topic_mutex);
+          sprintf(buff_out, "<< topic changed to: %s \n", topic);
+          send_message_all(buff_out);
+        } else
+          send_message_self("<< message cannot be null\n", cli->connfd);
+      }
+
+      else if (!strcmp(command, "/nick")) {
+        param = strtok(NULL, " ");
+        if (param) {
+          char *old_name = strdup(cli->name);
+          strcpy(cli->name, param);
+          sprintf(buff_out, "<< %s is now known as %s\n", old_name, cli->name);
+          free(old_name);
+          send_message_all(buff_out);
+        } else
+          send_message_self("<< name cannot be null\n", cli->connfd);
+      }
+
+      else if (!strcmp(command, "/msg")) {
+        param = strtok(NULL, " ");
+        if (param) {
+          unsigned int uid = atoi(param);
+          param = strtok(NULL, " ");
+          if (param) {
+            sprintf(buff_out, "[PM][%s]", cli->name);
+            while (param != NULL) {
+              strcat(buff_out, " ");
+              strcat(buff_out, param);
+              param = strtok(NULL, " ");
+            }
+            strcat(buff_out, "\n");
+            send_message_client(buff_out, uid);
+          } else
+            send_message_self("<< message cannot be null\n", cli->connfd);
+
+        } else
+          send_message_self("<< reference cannot be null\n", cli->connfd);
+      }
+
+      else if (!strcmp(command, "/list")) {
+        sprintf(buff_out, "<< clients %d\n", cli_count);
+        send_message_self(buff_out, cli->connfd);
+        send_active_clients(cli->connfd);
+      }
+
+      else if (!strcmp(command, "/help")) {
+        strcat(buff_out, "<< /quit     Quit chatroom\n");
+        strcat(buff_out, "<< /ping     Server test\n");
+        strcat(buff_out, "<< /topic    <message> Set chat topic\n");
+        strcat(buff_out, "<< /nick     <name> Change nickname\n");
+        strcat(buff_out,
+               "<< /msg      <reference> <message> Send private message\n");
+        strcat(buff_out, "<< /list     Show active clients\n");
+        strcat(buff_out, "<< /help     Show help\n");
+        send_message_self(buff_out, cli->connfd);
+      } else
+        send_message_self("<< unknown command\n", cli->connfd);
+    }
+
+    // Handle ^C
+    else if (buff_in[0] == EOF)
+      break;
+
+    else {
+      sprintf(buff_out, "[%s] %s\n", cli->name, buff_in);
+      send_message(buff_out, cli->uid);
+    }
+  }
+
+  sprintf(buff_out, "<< %s has left\n", cli->name);
+  send_message_all(buff_out);
+  close(cli->connfd);
+
+  /* Delete client from queue and yield thread */
+  queue_delete(cli->uid);
+  printf("<< quit ");
+  print_client_addr(cli->addr);
+  printf(" referenced by %d\n", cli->uid);
+  free(cli);
+  cli_count--;
+  pthread_detach(pthread_self());
+
+  return NULL;
+}
 
 int main() {
-  int server_fd, new_socket, valread;
-  struct sockaddr_in address;
-  int opt = 1;
-  int addrlen = sizeof address;
-  char buffer[1024] = "";
-  char *hello = "Hello from server";
+  int listenfd = 0, connfd = 0;
+  struct sockaddr_in serv_addr;
+  struct sockaddr_in cli_addr;
+  pthread_t tid;
 
-  if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-    perror("socket failed");
-    exit(EXIT_FAILURE);
+  /* Socket settings */
+  listenfd = socket(AF_INET, SOCK_STREAM, 0);
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serv_addr.sin_port = htons(PORT);
+
+  /* Ignore pipe signals */
+  signal(SIGPIPE, SIG_IGN);
+
+  /* Bind */
+  if (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+    perror("Socket binding failed");
+    return EXIT_FAILURE;
   }
 
-  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
-                 sizeof opt)) {
+  /* Listen */
+  if (listen(listenfd, 10) < 0) {
+    perror("Socket listening failed");
+    return EXIT_FAILURE;
   }
 
-  address.sin_family = AF_INET;
-  address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(PORT);
-  address.sin_port = htons(PORT);
+  puts("<SERVER STARTED>");
 
-  if (bind(server_fd, (struct sockaddr *)&address, sizeof address) < 0) {
-    perror("bind filed");
-    exit(EXIT_FAILURE);
+  // Handle the addition of clients
+  while (1) {
+    socklen_t client_len = sizeof(cli_addr);
+    connfd = accept(listenfd, (struct sockaddr *)&cli_addr, &client_len);
+
+    if ((cli_count + 1) == MAX_CLIENTS) {
+      puts("<< max clients reached");
+      printf("<< reject ");
+      print_client_addr(&cli_addr);
+      puts("");
+      close(connfd);
+      continue;
+    }
+
+    Client *cli = (Client *)malloc(sizeof(Client));
+    cli->addr = &cli_addr;
+    cli->connfd = connfd;
+    cli->uid = uid++;
+    sprintf(cli->name, "%d", cli->uid);
+
+    queue_add(cli);
+    pthread_create(&tid, NULL, &handle_client, (void *)cli);
+
+    sleep(1);
   }
 
-  if (listen(server_fd, 3) < 0) {
-    perror("listen");
-    exit(EXIT_FAILURE);
-  }
-
-  if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                           (socklen_t *)&addrlen)) < 0) {
-    perror("accept");
-    exit(EXIT_FAILURE);
-  }
-
-  valread = read(new_socket, buffer, 1024);
-  printf("%s\n", buffer);
-  send(new_socket, hello, strlen(hello), 0);
-  puts("Hello Message sent.");
-  return 0;
+  return EXIT_SUCCESS;
 }

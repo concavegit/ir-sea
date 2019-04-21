@@ -1,3 +1,7 @@
+/**
+   @file server.c
+   @see server.h for function documentation
+*/
 #include <arpa/inet.h>
 #include <errno.h>
 #include <pthread.h>

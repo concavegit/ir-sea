@@ -44,3 +44,7 @@ The IRC server is getting cleaned from minor bugs, including making nicknames wo
 
 
 We are all working on the above projects using peer-programming.
+
+Trello: https://trello.com/b/i9AXutYA/irsea
+Github: https://github.com/concavegit/ir-sea/edit/master/
+

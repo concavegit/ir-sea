@@ -22,7 +22,7 @@
    identifier, and a name.
  */
 typedef struct {
-  struct sockaddr_in *addr;
+  struct sockaddr_in6 *addr;
   int connfd;
   unsigned int uid;
   char name[MAX_NAME_SZ];
@@ -100,7 +100,7 @@ void strip_newline(char *s);
 /**
    Print the client address.
 */
-void print_client_addr(struct sockaddr_in *addr);
+void print_client_addr(struct sockaddr_in6 *addr);
 
 /**
    Handle inputs to the clients as well as disconnections.

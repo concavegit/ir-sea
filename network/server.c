@@ -90,7 +90,7 @@ void send_active_clients(int connfd) {
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < MAX_CLIENTS; ++i)
     if (clients[i]) {
-      sprintf(s, "<< [%d] %s\n", clients[i]->uid, clients[i]->name);
+      sprintf(s, "<< [%d] %s\r\n", clients[i]->uid, clients[i]->name);
       send_message_self(s, connfd);
     }
 
@@ -99,17 +99,17 @@ void send_active_clients(int connfd) {
 
 void strip_newline(char *s) {
   while (*s != 0) {
-    if (*s == '\n')
+    if (*s == '\n' || *s == 'r')
       *s = 0;
 
     ++s;
   }
 }
 
-void print_client_addr(struct sockaddr_in *addr) {
-  char ip4[INET_ADDRSTRLEN];
-  inet_ntop(AF_INET, &(addr->sin_addr), ip4, INET_ADDRSTRLEN);
-  printf("%s", ip4);
+void print_client_addr(struct sockaddr_in6 *addr) {
+  char ip6[INET6_ADDRSTRLEN];
+  inet_ntop(AF_INET6, &(addr->sin6_addr), ip6, INET6_ADDRSTRLEN);
+  printf("%s", ip6);
 }
 
 void *handle_client(void *arg) {
@@ -122,20 +122,20 @@ void *handle_client(void *arg) {
 
   printf("<< accept ");
   print_client_addr(cli->addr);
-  printf(" referenced by %d\n", cli->uid);
+  printf(" referenced by %d\r\n", cli->uid);
 
-  sprintf(buff_out, "<< %s has joined\n", cli->name);
+  sprintf(buff_out, "<< %s has joined\r\n", cli->name);
   send_message_all(buff_out);
 
   pthread_mutex_lock(&topic_mutex);
   if (strlen(topic)) {
-    sprintf(buff_out, "<< topic: %s\n", topic);
+    sprintf(buff_out, "<< topic: %s\r\n", topic);
     send_message_self(buff_out, cli->connfd);
   }
 
   pthread_mutex_unlock(&topic_mutex);
 
-  send_message_self("<< see /help for assistance\n", cli->connfd);
+  send_message_self("<< see /help for assistance\r\n", cli->connfd);
 
   /* Receive input from client */
   while ((read_len = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
@@ -155,7 +155,7 @@ void *handle_client(void *arg) {
         break;
 
       else if (!strcmp(command, "/ping"))
-        send_message_self("<< pong\n", cli->connfd);
+        send_message_self("<< pong\r\n", cli->connfd);
 
       else if (!strcmp(command, "/topic")) {
         param = strtok(NULL, " ");
@@ -168,10 +168,10 @@ void *handle_client(void *arg) {
             param = strtok(NULL, " ");
           }
           pthread_mutex_unlock(&topic_mutex);
-          sprintf(buff_out, "<< topic changed to: %s \n", topic);
+          sprintf(buff_out, "<< topic changed to: %s \r\n", topic);
           send_message_all(buff_out);
         } else
-          send_message_self("<< message cannot be null\n", cli->connfd);
+          send_message_self("<< message cannot be null\r\n", cli->connfd);
       }
 
       else if (!strcmp(command, "/nick")) {
@@ -179,11 +179,12 @@ void *handle_client(void *arg) {
         if (param) {
           char *old_name = strdup(cli->name);
           strcpy(cli->name, param);
-          sprintf(buff_out, "<< %s is now known as %s\n", old_name, cli->name);
+          sprintf(buff_out, "<< %s is now known as %s\r\n", old_name,
+                  cli->name);
           free(old_name);
           send_message_all(buff_out);
         } else
-          send_message_self("<< name cannot be null\n", cli->connfd);
+          send_message_self("<< name cannot be null\r\n", cli->connfd);
       }
 
       else if (!strcmp(command, "/msg")) {
@@ -198,33 +199,33 @@ void *handle_client(void *arg) {
               strcat(buff_out, param);
               param = strtok(NULL, " ");
             }
-            strcat(buff_out, "\n");
+            strcat(buff_out, "\r\n");
             send_message_client(buff_out, uid);
           } else
-            send_message_self("<< message cannot be null\n", cli->connfd);
+            send_message_self("<< message cannot be null\r\n", cli->connfd);
 
         } else
-          send_message_self("<< reference cannot be null\n", cli->connfd);
+          send_message_self("<< reference cannot be null\r\n", cli->connfd);
       }
 
       else if (!strcmp(command, "/list")) {
-        sprintf(buff_out, "<< clients %d\n", cli_count);
+        sprintf(buff_out, "<< clients %d\r\n", cli_count);
         send_message_self(buff_out, cli->connfd);
         send_active_clients(cli->connfd);
       }
 
       else if (!strcmp(command, "/help")) {
-        strcat(buff_out, "<< /quit     Quit chatroom\n");
-        strcat(buff_out, "<< /ping     Server test\n");
-        strcat(buff_out, "<< /topic    <message> Set chat topic\n");
-        strcat(buff_out, "<< /nick     <name> Change nickname\n");
+        strcat(buff_out, "<< /quit     Quit chatroom\r\n");
+        strcat(buff_out, "<< /ping     Server test\r\n");
+        strcat(buff_out, "<< /topic    <message> Set chat topic\r\n");
+        strcat(buff_out, "<< /nick     <name> Change nickname\r\n");
         strcat(buff_out,
-               "<< /msg      <reference> <message> Send private message\n");
-        strcat(buff_out, "<< /list     Show active clients\n");
-        strcat(buff_out, "<< /help     Show help\n");
+               "<< /msg      <reference> <message> Send private message\r\n");
+        strcat(buff_out, "<< /list     Show active clients\r\n");
+        strcat(buff_out, "<< /help     Show help\r\n");
         send_message_self(buff_out, cli->connfd);
       } else
-        send_message_self("<< unknown command\n", cli->connfd);
+        send_message_self("<< unknown command\r\n", cli->connfd);
     }
 
     // Handle ^C
@@ -232,12 +233,12 @@ void *handle_client(void *arg) {
       break;
 
     else {
-      sprintf(buff_out, "[%s] %s\n", cli->name, buff_in);
+      sprintf(buff_out, "[%s] %s\r\n", cli->name, buff_in);
       send_message(buff_out, cli->uid);
     }
   }
 
-  sprintf(buff_out, "<< %s has left\n", cli->name);
+  sprintf(buff_out, "<< %s has left\r\n", cli->name);
   send_message_all(buff_out);
   close(cli->connfd);
 
@@ -245,7 +246,7 @@ void *handle_client(void *arg) {
   queue_delete(cli->uid);
   printf("<< quit ");
   print_client_addr(cli->addr);
-  printf(" referenced by %d\n", cli->uid);
+  printf(" referenced by %d\r\n", cli->uid);
   free(cli);
   cli_count--;
   pthread_detach(pthread_self());
@@ -255,15 +256,16 @@ void *handle_client(void *arg) {
 
 int main() {
   int listenfd = 0, connfd = 0;
-  struct sockaddr_in serv_addr;
-  struct sockaddr_in cli_addr;
+  struct sockaddr_in6 serv_addr;
+  struct sockaddr_in6 cli_addr;
   pthread_t tid;
 
   /* Socket settings */
-  listenfd = socket(AF_INET, SOCK_STREAM, 0);
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(PORT);
+  listenfd = socket(AF_INET6, SOCK_STREAM, 0);
+  serv_addr.sin6_family = AF_INET6;
+  serv_addr.sin6_addr = in6addr_any;
+  /* serv_addr.addr.s_addr = htonl(INADDR_ANY); */
+  serv_addr.sin6_port = htons(PORT);
 
   /* Ignore pipe signals */
   signal(SIGPIPE, SIG_IGN);

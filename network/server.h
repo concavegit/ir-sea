@@ -11,7 +11,7 @@
 #pragma once
 #include <pthread.h>
 
-#define MAX_CLIENTS 256
+#define MAX_CLIENTS 512
 #define BUFFER_SZ 2048
 #define MAX_NAME_SZ 32
 #define PORT 5000
@@ -32,7 +32,7 @@ typedef struct {
 extern int cli_count;
 
 /** Keep track of the latest uid */
-extern int uid;
+extern unsigned int uid;
 
 /** Keep track of the topic in use */
 extern char topic[];

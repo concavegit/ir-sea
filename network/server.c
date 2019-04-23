@@ -15,9 +15,9 @@
 
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t topic_mutex = PTHREAD_MUTEX_INITIALIZER;
-int uid = 0;
+unsigned int uid = 0;
 int cli_count = 0;
-char topic[BUFFER_SZ];
+char topic[BUFFER_SZ / 2];
 
 void queue_add(Client *client) {
   pthread_mutex_lock(&clients_mutex);
@@ -33,16 +33,16 @@ void queue_add(Client *client) {
 void queue_delete(unsigned int uid) {
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < MAX_CLIENTS; ++i)
-    if (clients[i]) {
+    if (clients[i])
       if (clients[i]->uid == uid) {
         clients[i] = NULL;
         break;
       }
-    }
 
   pthread_mutex_unlock(&clients_mutex);
 }
 
+/* Send message to all clients but the sender */
 void send_message(char *s, unsigned int uid) {
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < MAX_CLIENTS; ++i)
@@ -103,10 +103,10 @@ void send_active_clients(int connfd) {
 
 void strip_newline(char *s) {
   while (*s != 0) {
-    if (*s == '\n' || *s == 'r')
+    if (*s == '\r' || *s == '\n')
       *s = 0;
 
-    ++s;
+    s++;
   }
 }
 
@@ -119,42 +119,43 @@ void print_client_addr(struct sockaddr_in6 *addr) {
 void *handle_client(void *arg) {
   char buff_out[BUFFER_SZ];
   char buff_in[BUFFER_SZ / 2];
-  int read_len;
+  int num_bytes;
 
   cli_count++;
   Client *cli = (Client *)arg;
 
   printf("<< accept ");
   print_client_addr(cli->addr);
-  printf(" referenced by %d\r\n", cli->uid);
+  printf(" referenced by %d\n", cli->uid);
 
   sprintf(buff_out, "<< %s has joined\r\n", cli->name);
   send_message_all(buff_out);
 
   pthread_mutex_lock(&topic_mutex);
   if (strlen(topic)) {
+    buff_out[0] = 0;
     sprintf(buff_out, "<< topic: %s\r\n", topic);
     send_message_self(buff_out, cli->connfd);
   }
-
   pthread_mutex_unlock(&topic_mutex);
 
   send_message_self("<< see /help for assistance\r\n", cli->connfd);
 
   /* Receive input from client */
-  while ((read_len = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
-    buff_in[read_len] = 0;
+  while ((num_bytes = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
+    buff_in[num_bytes] = 0;
     buff_out[0] = 0;
     strip_newline(buff_in);
 
-    // Do not handle empty buffers
+    /* Ignore empty buffer */
     if (!strlen(buff_in))
       continue;
 
-    // Handle special commands
+    /* Special options */
     if (buff_in[0] == '/') {
       char *command, *param;
       command = strtok(buff_in, " ");
+
       if (!strcmp(command, "/quit"))
         break;
 
@@ -163,14 +164,17 @@ void *handle_client(void *arg) {
 
       else if (!strcmp(command, "/topic")) {
         param = strtok(NULL, " ");
+
         if (param) {
           pthread_mutex_lock(&topic_mutex);
           topic[0] = 0;
+
           while (param != NULL) {
             strcat(topic, param);
             strcat(topic, " ");
             param = strtok(NULL, " ");
           }
+
           pthread_mutex_unlock(&topic_mutex);
           sprintf(buff_out, "<< topic changed to: %s \r\n", topic);
           send_message_all(buff_out);
@@ -180,8 +184,10 @@ void *handle_client(void *arg) {
 
       else if (!strcmp(command, "/nick")) {
         param = strtok(NULL, " ");
+
         if (param) {
           char *old_name = strdup(cli->name);
+
           strcpy(cli->name, param);
           sprintf(buff_out, "<< %s is now known as %s\r\n", old_name,
                   cli->name);
@@ -193,16 +199,20 @@ void *handle_client(void *arg) {
 
       else if (!strcmp(command, "/msg")) {
         param = strtok(NULL, " ");
+
         if (param) {
           unsigned int uid = atoi(param);
           param = strtok(NULL, " ");
+
           if (param) {
             sprintf(buff_out, "[PM][%s]", cli->name);
+
             while (param != NULL) {
               strcat(buff_out, " ");
               strcat(buff_out, param);
               param = strtok(NULL, " ");
             }
+
             strcat(buff_out, "\r\n");
             send_message_client(buff_out, uid);
           } else
@@ -232,12 +242,8 @@ void *handle_client(void *arg) {
         send_message_self("<< unknown command\r\n", cli->connfd);
     }
 
-    // Handle ^C
-    else if (buff_in[0] == EOF)
-      break;
-
     else {
-      sprintf(buff_out, "[%s] %s\r\n", cli->name, buff_in);
+      snprintf(buff_out, sizeof(buff_out), "[%s] %s\r\n", cli->name, buff_in);
       send_message(buff_out, cli->uid);
     }
   }
@@ -246,7 +252,6 @@ void *handle_client(void *arg) {
   send_message_all(buff_out);
   close(cli->connfd);
 
-  /* Delete client from queue and yield thread */
   queue_delete(cli->uid);
   printf("<< quit ");
   print_client_addr(cli->addr);
@@ -264,31 +269,25 @@ int main() {
   struct sockaddr_in6 cli_addr;
   pthread_t tid;
 
-  /* Socket settings */
   listenfd = socket(AF_INET6, SOCK_STREAM, 0);
   serv_addr.sin6_family = AF_INET6;
   serv_addr.sin6_addr = in6addr_any;
-  /* serv_addr.addr.s_addr = htonl(INADDR_ANY); */
   serv_addr.sin6_port = htons(PORT);
 
-  /* Ignore pipe signals */
   signal(SIGPIPE, SIG_IGN);
 
-  /* Bind */
   if (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
     perror("Socket binding failed");
     return EXIT_FAILURE;
   }
 
-  /* Listen */
   if (listen(listenfd, 10) < 0) {
     perror("Socket listening failed");
     return EXIT_FAILURE;
   }
 
-  puts("<SERVER STARTED>");
+  puts("<< server started");
 
-  // Handle the addition of clients
   while (1) {
     socklen_t client_len = sizeof(cli_addr);
     connfd = accept(listenfd, (struct sockaddr *)&cli_addr, &client_len);

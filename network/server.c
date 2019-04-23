@@ -260,7 +260,7 @@ void *handle_client(void *arg) {
   cli_count--;
   pthread_detach(pthread_self());
 
-  return NULL;
+  pthread_exit(NULL);
 }
 
 int main() {

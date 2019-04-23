@@ -106,7 +106,7 @@ void strip_newline(char *s) {
     if (*s == '\r' || *s == '\n')
       *s = 0;
 
-    s++;
+    ++s;
   }
 }
 
@@ -121,7 +121,7 @@ void *handle_client(void *arg) {
   char buff_in[BUFFER_SZ / 2];
   int num_bytes;
 
-  cli_count++;
+  ++cli_count;
   Client *cli = (Client *)arg;
 
   printf("<< accept ");
@@ -257,7 +257,7 @@ void *handle_client(void *arg) {
   print_client_addr(cli->addr);
   printf(" referenced by %d\r\n", cli->uid);
   free(cli);
-  cli_count--;
+  --cli_count;
   pthread_detach(pthread_self());
 
   pthread_exit(NULL);

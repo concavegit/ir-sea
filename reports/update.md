@@ -5,7 +5,8 @@ Sreekanth Sajjala, Kawin Nikomborirak, Siddharth Garimella
 
 
 
-The Final Goal
+### The Final Goal
+
 The initial goal was to explore network programming via a client-server application, hence the original MVP of making an IRC server/client clone. A stretch goal is to explore the lower levels of the network stack such as the physical layer to obtain a deep understanding of computer networks.
 
 ### What We’ll Learn

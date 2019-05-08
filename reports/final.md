@@ -1,4 +1,4 @@
-## Exploring Networks bia IRC and Hamming Codes
+## Exploring Networks via IRC and Hamming Codes
 Sreekanth Sajjala, Kawin Nikomborirak, Siddharth Garimella
 
 ### Project Goals

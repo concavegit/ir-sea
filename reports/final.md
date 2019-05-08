@@ -61,4 +61,100 @@ The server is concurrent with a mutex for the handling of clients as well as a m
 Using [Beej’s guide](https://beej.us/guide/bgnet/) to network programming for reference, we are using send() and recv() in lieu of write() and read() to get into the habit of using more powerful networking tools.
 Since we want to be able to demo the chatroom in class with no overhead for participants, we will be using telnet as a client and have all other interactions handled by the server.
 
-#### Physical Layer
+#### Data processing
+
+The message was first converted to a bit string representation for transmission using an LED. Then, it is split up into words. Each word is processed a character at a time, providing a bit string of length 8 to the Hamming encoder.
+
+```
+for (int i = 7; i >= 0; i--) {
+      // printf( "%d", ( token >> i ) & 1 ? 1 : 0 );
+      data[7 - i] = (token >> i) & 1 ? 1 : 0;
+    }
+
+    // printf(": ");
+
+    int nybble1[4];
+    int nybble2[4];
+    int *codenybble1;
+    int *codenybble2;
+
+    for (int i = 0; i < 8; i++) {
+      if (i < 4) {
+        nybble1[i] = data[i];
+      } else {
+        nybble2[i - 4] = data[i];
+      }
+    }
+```
+
+The Hamming encoder gets the bit string and breaks it up into two nibbles. Each nibble, now of length 4, is then assigned 3 parity bits. The parity bits are decided based on the linear coding scheme used (Hamming code). 
+
+```
+void correct_codeword(int *codeword) {
+  // int * p = malloc(7*sizeof(int));
+  // memcpy(p, codeword, 7*sizeof(int));
+  int c1 = codeword[6] ^ codeword[4] ^ codeword[2] ^ codeword[0];
+  int c2 = codeword[5] ^ codeword[4] ^ codeword[1] ^ codeword[0];
+  int c3 = codeword[3] ^ codeword[2] ^ codeword[1] ^ codeword[0];
+  int c = c3 * 4 + c2 * 2 + c1;
+  // printf("%d",c);
+  if (c == 0) {
+    puts("\nNO ERROR DETECTED.");
+  } else {
+    if (codeword[7 - c] == 0) {
+      codeword[7 - c] = 1;
+    } else {
+      codeword[7 - c] = 0;
+    }
+    puts("\nERROR CORRECTED");
+  }
+}
+```
+
+The parity bits are then appended to each nibble, resulting in a bit string of length 7. The encoded message data is now ready to be sent via the channel.
+
+
+#### Light transmission 
+
+We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmit data through light. We passed nibbles of data through via the LED/photoresistor setup using morse code and passed the data through the hamming codes script and added error checking bits to them. We then added some noise and passed them from one pi to another where we error checked and corrected the pieces of data.  
+
+``` c
+/** Keep track of the amount of clients */
+extern int cli_count;
+
+/** Keep track of the latest uid */
+extern unsigned int uid;
+
+/** Keep track of the topic in use */
+extern char topic[];
+
+/** A buffer containing the clients */
+Client *clients[MAX_CLIENTS];
+```
+
+When a client created via an established connection, a function called `queue_add` adds a client to the client buffer and increments `cli_count`.
+When a client is removed via the `/quit` command, a function called `queue_delete` frees the client and decrements `cli_count`.
+The structure contains a socket, file descriptor, a unique id for each client, and a name to be set by the user.
+The `Client` struct is the structure which keeps track of a connected client, which is shown below.
+
+```
+/**
+   The structure used to describe a client.
+   It comprises of a socket address, a file descriptor, a unique
+   identifier, and a name.
+ */
+typedef struct {
+  struct sockaddr_in6 *addr;
+  int connfd;
+  unsigned int uid;
+  char name[MAX_NAME_SZ];
+} Client;
+```
+
+The address of the client is an IPv6 address, and there is an associated file descriptor for reading and writing, a user id which is a number, and a user name which can be set with the `/nick` command similar to actual IRC syntax.
+
+The server is concurrent with a mutex for the handling of clients as well as a mutex for the changing of the current topic.
+
+Using [Beej’s guide](https://beej.us/guide/bgnet/) to network programming for reference, we are using send() and recv() in lieu of write() and read() to get into the habit of using more powerful networking tools.
+Since we want to be able to demo the chatroom in class with no overhead for participants, we will be using telnet as a client and have all other interactions handled by the server.
+

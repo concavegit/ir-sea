@@ -59,6 +59,6 @@ The address of the client is an IPv6 address, and there is an associated file de
 The server is concurrent with a mutex for the handling of clients as well as a mutex for the changing of the current topic.
 
 Using [Beej’s guide](https://beej.us/guide/bgnet/) to network programming for reference, we are using send() and recv() in lieu of write() and read() to get into the habit of using more powerful networking tools.
-All commands with 
+Since we want to be able to demo the chatroom in class with no overhead for participants, we will be using telnet as a client and have all other interactions handled by the server.
 
 #### Physical Layer

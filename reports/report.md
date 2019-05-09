@@ -130,6 +130,8 @@ For decoding, partial messages are simply extracted from each nybble, and joined
 
 We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmit data through light. We passed nibbles of data through via the LED/photoresistor setup using morse code and passed the data through the hamming codes script and added error checking bits to them. We then added some noise and passed them from one pi to another where we error checked and corrected the pieces of data.  
 
+![](../sad.png)
+
 ## Reflection
 We were able to understand the transport layer of the internet by using sockets and run an application layer via a client.
 We also successfully implemented an error checking physical layer.

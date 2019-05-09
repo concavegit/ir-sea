@@ -141,3 +141,5 @@ All of this in a bug-free application exceeded our first hopes for the project.
 In all, this project has strengthened our confidence on how networks are implemented and our ability to create network-related programs.
 
 Trello board: https://trello.com/b/i9AXutYA/irsea
+
+Presentation: https://docs.google.com/presentation/d/1WHuvyTm3Z8Dq3_qSc0JJRP-h1rK6UXx92n0Vjv86hLY/edit?usp=sharing

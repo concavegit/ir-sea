@@ -135,3 +135,5 @@ The learning goals of using C to explore network programming via a server/client
 We were also able to stretch ourselves and add nice client features such as help, ping, and direct messaging.
 All of this in a bug-free application exceeded our first hopes for the project.
 In all, this project has strengthened our confidence on how networks are implemented and our ability to create network-related programs.
+
+Trello board: https://trello.com/b/i9AXutYA/irsea

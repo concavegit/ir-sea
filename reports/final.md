@@ -117,3 +117,13 @@ The parity bits are then appended to each nibble, resulting in a bit string of l
 #### Physical Layer: Light transmission 
 
 We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmit data through light. We passed nibbles of data through via the LED/photoresistor setup using morse code and passed the data through the hamming codes script and added error checking bits to them. We then added some noise and passed them from one pi to another where we error checked and corrected the pieces of data.  
+
+
+### Resources: 
+ - Class materials from Computer Networks
+ - https://en.wikibooks.org/wiki/C_Programming/Networking_in_UNIX
+ - https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+ - https://tools.ietf.org/html/rfc1459
+
+ - Discrete Mathematics class material
+ - https://vuiis.vumc.org/~dss/fast_io.ht

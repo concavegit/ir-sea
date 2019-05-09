@@ -70,7 +70,7 @@ The server is concurrent with a mutex for the handling of clients as well as a m
 Using [Beej’s guide](https://beej.us/guide/bgnet/) to network programming for reference, we are using send() and recv() in lieu of write() and read() to get into the habit of using more powerful networking tools.
 Since we want to be able to demo the chatroom in class with no overhead for participants, we will be using telnet as a client and have all other interactions handled by the server.
 
-#### Data processing
+#### Data encoding
 
 The message was first converted to a bit string representation for transmission using an LED. Then, it is split up into words. Each word is processed a character at a time, providing a bit string of length 8 to the Hamming encoder.
 
@@ -122,6 +122,9 @@ void correct_codeword(int *codeword) {
 
 The parity bits are then appended to each nibble, resulting in a bit string of length 7. The encoded message data is now ready to be sent via the channel.
 
+For decoding, partial messages are extracted from each nybble, and joined to represent the bitstring of the original letter. 
+
+![](../hamming/encdec.png)
 
 #### Physical Layer: Light transmission 
 

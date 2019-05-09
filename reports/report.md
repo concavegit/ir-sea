@@ -122,7 +122,7 @@ void correct_codeword(int *codeword) {
 
 The parity bits are then appended to each nibble, resulting in a bit string of length 7. The encoded message data is now ready to be sent via the channel.
 
-For decoding, partial messages are extracted from each nybble, and joined to represent the bitstring of the original letter. 
+For decoding, partial messages are simply extracted from each nybble, and joined to represent the bitstring of the original letter. 
 
 ![](../hamming/encdec.png)
 

@@ -10,16 +10,16 @@ letter_dict = {"1": dash,
                "  ": wor_brk}
 
 
-def letter_to_morse(letter):
+def bit_to_light(letter):
 
-    return letter_dict[letter] + let_brk
+    return letter_dict[letter] + let_brk # Converts 1s and 0s into dots and dashes
 
-def sequence_to_morse(sequence):
-    sequence_in_morse = []
+def sequence_to_light(sequence):
+    sequence_in_light = []
     for letter in sequence:
-        sequence_in_morse += letter_to_morse(letter)
-    return sequence_in_morse[:-2]
-s=sequence_to_morse("1110 1100 1110 1000 1100 1100 1000 1000  ")
+        sequence_in_light += letter_to_light(letter)
+    return sequence_in_light[:-2]
+s=sequence_to_light("1110 1100 1110 1000 1100 1100 1000 1000  ")
 
 if __name__ == '__main__':
     pass

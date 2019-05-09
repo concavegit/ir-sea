@@ -10,6 +10,16 @@ By building an IRC server, we will learn about network programming and the use o
 This level of abstraction focuses on the protocol behind IRC, and black-boxes many of the actual data transfer algorithms involved.
 To understand more about this part of networking in C, we’re implementing a light-based, error controlled data transfer channel, which we’ll intentionally introduce some noise to for the purpose of simulating noisy light conditions during the transfer process.
 
+
+### Resources: 
+ - Class materials from Computer Networks
+ - https://en.wikibooks.org/wiki/C_Programming/Networking_in_UNIX
+ - This explanation of sockets with example code: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+ - https://tools.ietf.org/html/rfc1459
+ - This useful guide to modern network programming: https://beej.us/guide/bgnet/
+ - Discrete Mathematics class material
+ - https://vuiis.vumc.org/~dss/fast_io.ht
+
 ### Deliverables
 
 #### IRC Server/Client

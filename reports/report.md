@@ -133,12 +133,12 @@ We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmi
 ![](../sad.png)
 
 ## Reflection
-We were able to understand the transport layer of the internet by using sockets and run an application layer via a client.
-We also successfully implemented an error checking physical layer.
-The learning goals of using C to explore network programming via a server/client application and exploring the physical layer.
+
+The learning goals of this project was to understand netwroking better in C. We did this by implementing two different network layers. We were able to understand the transport layer of the internet by using sockets and run an application layer via a client.
+We also successfully implemented an error checking physical layer using light transmission between two Raspberry Pis and hamming codes.
 We were also able to stretch ourselves and add nice client features such as help, ping, and direct messaging.
 All of this in a bug-free application exceeded our first hopes for the project.
-In all, this project has strengthened our confidence on how networks are implemented and our ability to create network-related programs.
+The project has strengthened our confidence on how networks are implemented and our ability to create network-related programs.
 
 Trello board: https://trello.com/b/i9AXutYA/irsea
 

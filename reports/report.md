@@ -15,10 +15,9 @@ To understand more about this part of networking in C, we’re implementing a li
  - Class materials from Computer Networks
  - https://en.wikibooks.org/wiki/C_Programming/Networking_in_UNIX
  - This explanation of sockets with example code: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
- - https://tools.ietf.org/html/rfc1459
+ - Information on IRC protocol: https://tools.ietf.org/html/rfc1459
  - This useful guide to modern network programming: https://beej.us/guide/bgnet/
  - Discrete Mathematics class material
- - https://vuiis.vumc.org/~dss/fast_io.ht
 
 ### Deliverables
 

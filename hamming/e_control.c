@@ -24,6 +24,22 @@ int *corrected_nybble(int *nybble) {
   return c;
 }
 
+char decode(int *nybble_one, int *nybble_two) {
+  char *bytes = malloc(8);
+  bytes[0] = nybble_one[0] + '0';
+  bytes[1] = nybble_one[1] + '0';
+  bytes[2] = nybble_one[2] + '0';
+  bytes[3] = nybble_one[4] + '0';
+  bytes[4] = nybble_two[0] + '0';
+  bytes[5] = nybble_two[1] + '0';
+  bytes[6] = nybble_two[2] + '0';
+  bytes[7] = nybble_two[4] + '0';
+  char c = strtol(bytes, 0, 2);
+  puts(bytes);
+  free(bytes);
+  return c;
+}
+
 void correct_codeword(int *codeword) {
   // int * p = malloc(7*sizeof(int));
   // memcpy(p, codeword, 7*sizeof(int));
@@ -42,6 +58,7 @@ void correct_codeword(int *codeword) {
     }
     puts("\nERROR CORRECTED");
   }
+  printf("%d",c);
 }
 
 int main(int argc, char **argv) {
@@ -87,8 +104,11 @@ int main(int argc, char **argv) {
       printf("%d", codenybble2[i]);
     }
 
-    // correct_codeword(codenybble1);
-    // correct_codeword(codenybble2);
+    correct_codeword(codenybble1);
+    correct_codeword(codenybble2);
+
+    char d = decode(codenybble1, codenybble2);
+    printf("%c",d);
   }
   printf("\n");
 }

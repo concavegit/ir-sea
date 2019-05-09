@@ -114,7 +114,7 @@ void correct_codeword(int *codeword) {
 The parity bits are then appended to each nibble, resulting in a bit string of length 7. The encoded message data is now ready to be sent via the channel.
 
 
-#### Light transmission 
+#### Physical Layer: Light transmission 
 
 We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmit data through light. We passed nibbles of data through via the LED/photoresistor setup using morse code and passed the data through the hamming codes script and added error checking bits to them. We then added some noise and passed them from one pi to another where we error checked and corrected the pieces of data.  
 

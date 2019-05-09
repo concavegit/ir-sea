@@ -117,3 +117,10 @@ The parity bits are then appended to each nibble, resulting in a bit string of l
 #### Physical Layer: Light transmission 
 
 We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmit data through light. We passed nibbles of data through via the LED/photoresistor setup using morse code and passed the data through the hamming codes script and added error checking bits to them. We then added some noise and passed them from one pi to another where we error checked and corrected the pieces of data.  
+
+## Reflection
+We were able to understand the transport layer of the internet by using sockets and run an application layer via a client.
+We also successfully implemented an error checking physical layer.
+The learning goals of using C to explore network programming via a server/client application and exploring the physical layer.
+We were also able to stretch ourselves and add nice client features such as help, ping, and direct messaging.
+In all, this project has strengthened our confidence on how networks are implemented and our ability to create network-related programs.

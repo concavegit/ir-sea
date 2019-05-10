@@ -127,9 +127,20 @@ For decoding, partial messages are simply extracted from each nybble, and joined
 
 #### Physical Layer: Light transmission 
 
-We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmit data through light. We passed nibbles of data through via the LED/photoresistor setup using morse code and passed the data through the hamming codes script and added error checking bits to them. We then added some noise and passed them from one pi to another where we error checked and corrected the pieces of data.  
+We decided to use 2 Raspberry Pi's, an LED, and a photoresistor setup to transmit data through light. We passed data nibbles at a time between Pi's using morse code via the LED and photoresistor. We used the hamming code scripton both the sending and receiving ends to encode and decode the data. We then introduced some noise and repeated the process, verifying that the data arrived with some errors, but that many were caught and corrected for.
 
 ![](../sad.png)
+
+Example transmission: The quick brown fox jumps over the lazy dog
+
+Received: The quick brown fox jumps over thl lazyPdog
+
+Caught errors: 
+```
+[T:[] []', h:[] [], e:[] [],  :[] [4], q:[] [], u:[] [], i:[] [], c:[] [0], k:[] [],  :[5] [], b:[] [], r:[] [5], o:[] [3], w:[] [4], n:[] [],  :[4] [1], f:[] [], o:[] [], x:[3] [],  :[] [], j:[] [], u:[2] [], m:[] [], p:[] [], s:[] [],  :[] [], o:[] [1], v:[] [], e:[] [], r:[] [],  :[] [0], t:[5] [0], h:[] [], e:[] [3, 4],  :[] [], l:[] [], a:[] [], z:[] [], y:[] [],  :[1, 2] [], d:[2] [], o:[] [], g:[] []']
+```
+
+For each character, information about each error detected appears in the full output. The locations of errors in each error-corrected nibble appears beside the letter of the original message. 
 
 ## Reflection
 

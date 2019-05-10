@@ -75,18 +75,17 @@ Since we want to be able to demo the chatroom in class with no overhead for part
 The message was first converted to a bit string representation for transmission using an LED. Then, it is split up into words. Each word is processed a character at a time, providing a bit string of length 8 to the Hamming encoder.
 
 ```
-for (int i = 7; i >= 0; i--) {
-      // printf( "%d", ( token >> i ) & 1 ? 1 : 0 );
+    // converts token to bitstring representing byte
+    for (int i = 7; i >= 0; i--) {
       data[7 - i] = (token >> i) & 1 ? 1 : 0;
     }
-
-    // printf(": ");
 
     int nybble1[4];
     int nybble2[4];
     int *codenybble1;
     int *codenybble2;
-
+    
+    // splitting the byte into two nybbles
     for (int i = 0; i < 8; i++) {
       if (i < 4) {
         nybble1[i] = data[i];
@@ -98,15 +97,17 @@ for (int i = 7; i >= 0; i--) {
 
 The Hamming encoder gets the bit string and breaks it up into two nibbles. Each nibble, now of length 4, is then assigned 3 parity bits. The parity bits are decided based on the linear coding scheme used (Hamming code). 
 
+The parity bits are then appended to each nibble, resulting in a bit string of length 7. The encoded message data is now ready to be sent via the channel. With the addition of these bits, errors in the codeword (nibble + parity bits) can be caught, and even corrected. The hamming code used here is capable of catching up to two errors and correcting one (where an error is 0 switching to a 1 or vice-versa).
+
 ```
 void correct_codeword(int *codeword) {
-  // int * p = malloc(7*sizeof(int));
-  // memcpy(p, codeword, 7*sizeof(int));
+  // using parity bits in encoded 
   int c1 = codeword[6] ^ codeword[4] ^ codeword[2] ^ codeword[0];
   int c2 = codeword[5] ^ codeword[4] ^ codeword[1] ^ codeword[0];
   int c3 = codeword[3] ^ codeword[2] ^ codeword[1] ^ codeword[0];
   int c = c3 * 4 + c2 * 2 + c1;
-  // printf("%d",c);
+  
+  // c can provide information on where the error was detected in the codeword
   if (c == 0) {
     puts("\nNO ERROR DETECTED.");
   } else {
@@ -120,8 +121,6 @@ void correct_codeword(int *codeword) {
 }
 ```
 
-The parity bits are then appended to each nibble, resulting in a bit string of length 7. The encoded message data is now ready to be sent via the channel.
-
 For decoding, partial messages are simply extracted from each nybble, and joined to represent the bitstring of the original letter. 
 
 ![](../hamming/encdec.png)
@@ -134,11 +133,11 @@ We decided to use 2 Raspberry Pis, an LED, and a photoresistor set up to transmi
 
 ## Reflection
 
-The learning goals of this project was to understand netwroking better in C. We did this by implementing two different network layers. We were able to understand the transport layer of the internet by using sockets and run an application layer via a client.
-We also successfully implemented an error checking physical layer using light transmission between two Raspberry Pis and hamming codes.
-We were also able to stretch ourselves and add nice client features such as help, ping, and direct messaging.
-All of this in a bug-free application exceeded our first hopes for the project.
-The project has strengthened our confidence on how networks are implemented and our ability to create network-related programs.
+The learning goals of this project was to understand networking better in C. We accomplished this by implementing two different network layers. We were able to understand the transport layer of the internet by using sockets and running an application layer via a client.
+We also successfully implemented an error checking physical layer using light transmission between two Raspberry Pi's and hamming codes.
+We were also able to stretch ourselves and add some nice client-side features such as help, ping, and direct messaging.
+Throwing all of this together in a bug-free application exceeded our first hopes for the project.
+Ultimately, our work on this project has improved our knowledge about how networks are implemented in C and has increased our confidence in our ability to develop network-related programs.
 
 Trello board: https://trello.com/b/i9AXutYA/irsea
 
